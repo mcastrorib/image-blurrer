@@ -1,5 +1,5 @@
-#ifndef IMAGEBLURRERINPUT_H
-#define IMAGEBLURRERINPUT_H
+#ifndef IMAGEBLURRERINPUT_H_
+#define IMAGEBLURRERINPUT_H_
 
 // include Configuration file
 #include "ImageBlurrerHeader.h"
@@ -22,6 +22,8 @@ private:
     int blurX;
     int blurY;
     int blurZ;
+    bool binarize;
+    uchar threshold;
 public:
     ImageBlurrerInput(const string inputFile)
     {
@@ -43,6 +45,8 @@ public:
         this->blurX = other.blurX;
         this->blurY = other.blurY;
         this->blurZ = other.blurZ;
+        this->binarize = other.binarize;
+        this->threshold = other.threshold;
 
     }
 
@@ -60,6 +64,8 @@ public:
     int getBlurX() { return this->blurX; }
     int getBlurY() { return this->blurY; }
     int getBlurZ() { return this->blurZ; }
+    bool getBinarize() { return this->binarize; }
+    int getThreshold() { return this->threshold; }
 
 
 
@@ -99,7 +105,10 @@ public:
                 else if(token == "COUNT") (*this).readCount(content);
                 else if(token == "BLUR_X") (*this).readBlurX(content);
                 else if(token == "BLUR_Y") (*this).readBlurY(content);
-                else if(token == "BLUR_Z") (*this).readBlurZ(content);          
+                else if(token == "BLUR_Z") (*this).readBlurZ(content);
+                else if(token == "BINARIZE") (*this).readBinarize(content);
+                else if(token == "THRESHOLD") (*this).readThreshold(content);
+                          
             }
         } 
 
@@ -160,6 +169,18 @@ public:
     {
         this->blurZ = std::stoi(content);
     }
+
+    void readBinarize(string content)
+    {
+        if(content == "True" || content == "true") this->binarize = true;
+        else this->binarize = false;
+    }
+
+    void readThreshold(string content)
+    {
+        int a = std::stoi(content);
+        this->threshold = (uchar) a;
+    }    
 
 };
 

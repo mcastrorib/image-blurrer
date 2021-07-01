@@ -1,5 +1,5 @@
-#ifndef IMAGEBLURRER_APP_H
-#define IMAGEBLURRER_APP_H
+#ifndef IMAGEBLURRER_APP_H_
+#define IMAGEBLURRER_APP_H_
 
 // include Configuration file
 #include "ImageBlurrerHeader.h"
@@ -56,7 +56,7 @@ public:
     bool check()
     {
         /* 
-            Check if origin images have uniform resolutions
+            Check if origin images are not empty or have uniform resolutions
         */
         string imageFile;
         cv::Mat *image;
@@ -68,6 +68,12 @@ public:
         image = new cv::Mat(cv::imread(imageFile));
         width = image->cols;
         height = image->rows;
+
+        if(width == 0 || height == 0 || this->parser->getCount() == 0)
+        {
+            cout << "file: " << imageFile << "is an empty image" << endl;
+            return false;
+        }
 
         while(!quit)
         {
@@ -128,9 +134,15 @@ public:
             try 
             {
                 imageFile = this->parser->next();
-                cout << "checking " << imageFile << endl;
                 image = new cv::Mat(cv::imread(imageFile));
-                this->originImages.push_back(image->clone());
+                if (!image->data)
+                {
+                    cout << "Error: No image data in file " << imageFile << endl;
+                    quit = true;
+                } else  
+                {
+                    this->originImages.push_back(image->clone());
+                }
             } catch (const std::invalid_argument& e) 
             {
                 std::cerr << "exception: " << e.what() << std::endl; 
@@ -142,23 +154,100 @@ public:
 
     void run()
     {
-        cout << "image blurrer app running..." << endl;
-        vector<cv::Mat> currentImages;
-        int currentIdx = 0;
-        this->blurredImagesCount = this->originImages.size() / this->blurrer->getBlurZ();
-        for(int imageIdx = 0; imageIdx < this->blurredImagesCount; imageIdx++)
+        if(this->blurCheck)
         {
-            
-            for(int slice = 0; slice < this->blurrer->getBlurZ(); slice++)
+            cout << "image blurrer app running..." << endl;
+            vector<cv::Mat> currentImages(0);
+            int currentIdx = 0;
+            this->blurredImagesCount = this->originImages.size() / this->blurrer->getBlurZ();
+            for(int imageIdx = 0; imageIdx < this->blurredImagesCount; imageIdx++)
             {
-                currentIdx = imageIdx * this->blurrer->getBlurZ() + slice;
-                cout << "reading origin image slice " << currentIdx << endl;
-                currentImages.push_back(this->originImages[currentIdx]);
-            }
+                
+                for(int slice = 0; slice < this->blurrer->getBlurZ(); slice++)
+                {
+                    currentIdx = imageIdx * this->blurrer->getBlurZ() + slice;
+                    cout << "reading origin image slice " << currentIdx << endl;
+                    currentImages.push_back(this->originImages[currentIdx]);
+                }
 
-            this->blurrer->run();
-            currentImages.clear();
-        }         
+                try
+                {
+                    if(this->input->getBinarize()) 
+                    {
+                        blurredImages.push_back(this->blurrer->blurAndBinarize(currentImages, this->input->getThreshold()));
+                    } else 
+                    {
+                        blurredImages.push_back(this->blurrer->blur(currentImages));
+                    }
+                    currentImages.clear();
+                    cv::imshow("image", blurredImages[imageIdx]);
+                    cv::waitKey(20);
+                } catch (const std::invalid_argument& e)
+                {
+                    std::cerr << "exception: " << e.what() << std::endl; 
+                    return;
+                }
+            }   
+
+            (*this).save();      
+        } else
+        {
+                cout << "image list is not valid." << endl;
+                return;
+        }
+    }
+
+    void save()
+    {
+        (*this).createDestinationDir();   
+        string fullpath = this->input->getDestinationFilePath() + this->input->getDestinationFileName() + "/" + this->input->getDestinationFileName();
+        int digits = (*this).findDigits(this->blurredImagesCount);
+        for(int slice = 0; slice < this->blurredImagesCount; slice++)
+        {
+            (*this).saveImageSlice(fullpath, slice, digits, this->input->getExtension());
+        }
+    }
+
+    int findDigits(int n)
+    {
+        int count = 1;
+        int result = n / 10;
+
+        while (result > 0)
+        {
+            count++;
+            result = result / 10;
+        }
+
+        return count;
+    }
+
+    void saveImageSlice(string path, int slice, int digits, string extension)
+    {
+        string fileIdx = (*this).convertCurrentIdxToString(slice, digits);
+        string fullpath = path + "_" + fileIdx + extension;
+        cv::imwrite(fullpath, this->blurredImages[slice]); 
+    }
+
+    string convertCurrentIdxToString(int idx, int digits)
+    {
+        stringstream result;
+        result << std::setfill('0') << std::setw(digits) << idx;
+        return result.str();
+    }
+
+    void createDestinationDir()
+    {
+        string path = this->input->getDestinationFilePath() + this->input->getDestinationFileName();
+        char directory[path.size() + 1];
+        strcpy(directory, path.c_str());
+
+        struct stat st = {0};
+
+        if (stat(directory, &st) == -1)
+        {
+            mkdir(directory, 0700);
+        } 
     }
 };
 

@@ -1,12 +1,14 @@
-#ifndef IMAGEBLURRER_HEADER_H
-#define IMAGEBLURRER_HEADER_H
+#ifndef IMAGEBLURRER_HEADER_H_
+#define IMAGEBLURRER_HEADER_H_
 
 // include C++ standard libraries
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
+#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <iomanip>
-#include <iostream>
 #include <vector>
 #include <string>
 #include <map>
@@ -24,6 +26,7 @@
 // define macros
 
 // include ImageBlurrer lib classes
+#include "mRNG.h"
 #include "ImageBlurrer.h"
 #include "ImageFileParser.h"
 #include "ImageBlurrerInput.h"
