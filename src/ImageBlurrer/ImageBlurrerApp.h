@@ -156,6 +156,9 @@ public:
     {
         if(this->blurCheck)
         {
+            /*
+                Apply 'blur' to original image
+            */
             cout << "image blurrer app running..." << endl;
             vector<cv::Mat> currentImages(0);
             int currentIdx = 0;
@@ -189,6 +192,19 @@ public:
                 }
             }   
 
+            /*
+                If assigned, rescale image to original size
+            */
+            if(this->input->getResize())
+            {
+                ImageScale resizer(this->input->getScale(), this->blurredImages);
+                this->blurredImages = resizer.getRescaledImages();
+                this->blurredImagesCount *= this->input->getScale();
+            }
+
+            /*
+                Save proccessed image
+            */
             (*this).save();      
         } else
         {

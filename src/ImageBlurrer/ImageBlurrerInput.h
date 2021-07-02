@@ -14,7 +14,6 @@ private:
     string originFileName;
     string destinationFilePath;
     string destinationFileName;
-
     string extension;
     int digits;
     int first;
@@ -24,6 +23,9 @@ private:
     int blurZ;
     bool binarize;
     uchar threshold;
+    bool resize;
+    int scale;
+
 public:
     ImageBlurrerInput(const string inputFile)
     {
@@ -47,6 +49,8 @@ public:
         this->blurZ = other.blurZ;
         this->binarize = other.binarize;
         this->threshold = other.threshold;
+        this->resize = other.resize;
+        this->scale = other.scale;
 
     }
 
@@ -65,7 +69,9 @@ public:
     int getBlurY() { return this->blurY; }
     int getBlurZ() { return this->blurZ; }
     bool getBinarize() { return this->binarize; }
-    int getThreshold() { return this->threshold; }
+    uchar getThreshold() { return this->threshold; }
+    bool getResize() { return this->resize; }
+    int getScale() { return this->scale; }
 
 
 
@@ -108,7 +114,8 @@ public:
                 else if(token == "BLUR_Z") (*this).readBlurZ(content);
                 else if(token == "BINARIZE") (*this).readBinarize(content);
                 else if(token == "THRESHOLD") (*this).readThreshold(content);
-                          
+                else if(token == "RESIZE") (*this).readResize(content);
+                else if(token == "SCALE") (*this).readScale(content);                          
             }
         } 
 
@@ -180,7 +187,18 @@ public:
     {
         int a = std::stoi(content);
         this->threshold = (uchar) a;
+    }
+
+    void readResize(string content)
+    {
+        if(content == "True" || content == "true") this->resize = true;
+        else this->resize = false;
     }    
+
+    void readScale(string content)
+    {
+        this->scale = std::stoi(content);
+    }
 
 };
 

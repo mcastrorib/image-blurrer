@@ -28,6 +28,7 @@
 // include ImageBlurrer lib classes
 #include "mRNG.h"
 #include "ImageBlurrer.h"
+#include "ImageScale.h"
 #include "ImageFileParser.h"
 #include "ImageBlurrerInput.h"
 #include "ImageBlurrerApp.h"
